@@ -6,14 +6,13 @@ const User = require('../models/User');
 
 
 router.post('/signup', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
     try {
         let user = await User.findOne({ email });
         if (user) 
             return res.status(400).json({ message: 'User already exists' });
 
-        user = new User({ 
-            username, 
+        user = new User({
             email, 
             password: await bcrypt.hash(password, 10) 
         });
@@ -28,8 +27,7 @@ router.post('/signup', async (req, res) => {
         res.status(201).json({ 
             token, 
             user: { 
-                id: user._id, 
-                username, 
+                id: user._id,
                 email 
             } 
         });
@@ -58,10 +56,10 @@ router.post('/login', async (req, res) => {
         res.json({ 
             token, 
             user: { 
-                id: user._id, 
-                username: user.username, 
-                email } 
-            });
+                id: user._id,
+                email 
+            } 
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
