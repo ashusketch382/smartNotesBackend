@@ -10,7 +10,7 @@ router.post('/', authMiddleware, async (req, res) => {
   const { title, content, tags } = req.body;
   try {
     if (!content) return res.status(400).json({ message: 'Content is required' });
-    const summary = await summarizeText(content);
+    const summary = await summarizeText('title');
     const suggestedTags = await suggestTags(content);
     if (summary.includes('Failed')) {
       return res.status(429).json({ message: 'Summarization failed', note: null });
@@ -42,7 +42,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
   const { title, content, tags } = req.body;
   try {
     if (!content) return res.status(400).json({ message: 'Content is required' });
-    const summary = await summarizeText(content);
+    const summary = await summarizeText('title');
     const suggestedTags = await suggestTags(content);
     if (summary.includes('Failed')) {
       return res.status(429).json({ message: 'Summarization failed', note: null });
