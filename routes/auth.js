@@ -3,7 +3,17 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth');
 
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.json({ id: user._id, email: user.email, isFirstLogin: user.isFirstLogin });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 router.post('/signup', async (req, res) => {
     const { email, password } = req.body;
