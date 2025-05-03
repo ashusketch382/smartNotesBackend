@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const Note = require('../models/Notes');
+const summarizeText = require('../utils/summarize');
 
 router.get('/', authMiddleware, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
@@ -32,10 +33,16 @@ router.get('/', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, async (req, res) => {
     const { title, content, tags } = req.body;
     try {
+        if (!content) return res.status(400).json({ message: 'Content is required' })
+        const summary = await summarizeText(content);
+        if (summary.includes('Failed')) {
+            return res.status(429).json({ message: 'Summarization failed', note: null });
+        }
         const note = new Note({ 
             userId: req.user, 
             title, 
             content, 
+            summary,
             tags 
         });
         await note.save();
@@ -71,6 +78,11 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
     const { title, content, tags } = req.body;
     try {
+        if (!content) return res.status(400).json({ message: 'Content is required' })
+        const summary = await summarizeText(content);
+        if (summary.includes('Failed')) {
+            return res.status(429).json({ message: 'Summarization failed', note: null });
+        }
         const note = await Note.findOneAndUpdate({ 
             _id: req.params.id, 
             userId: req.user 
@@ -78,6 +90,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         { 
             title, 
             content, 
+            summary,
             tags, 
             updatedAt: Date.now() 
         },
