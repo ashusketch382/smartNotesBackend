@@ -59,6 +59,24 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
+router.get('/search', authMiddleware, async (req, res) => {
+    console.log('Searching notes...');
+    const { query } = req.query;
+    console.log('Query:', query);
+    console.log('User ID:', req.user);
+
+    if (!query) return res.status(400).json({ error: 'Query parameter required' });
+    try {
+        const notes = await Note.find(
+            { userId: req.user, $text: { $search: query } },
+            { score: { $meta: 'textScore' } }
+        ).sort({ score: { $meta: 'textScore' } }).limit(10);
+        res.json(notes);
+    } catch (err) {
+        res.status(500).json({ error: 'Search failed', details: err.message });
+    }
+});
+
 router.get('/:id', authMiddleware, async (req, res) => {
     try {
         const note = await Note.findOne({ _id: req.params.id, userId: req.user });
